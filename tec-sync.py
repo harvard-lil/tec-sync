@@ -20,7 +20,7 @@ SOURCE_URL = env('SOURCE_URL')
 CALENDAR_ID = env('CALENDAR_ID')
 GOOGLE_CREDENTIALS_FILE = env('GOOGLE_CREDENTIALS_FILE', default='google_auth.json')
 CRAWL_DELAY_SECONDS = env.int('CRAWL_DELAY_SECONDS', default=5)
-CACHE_MINUTES = env.int('CACHE_MINUTES', default=24*60)
+CACHE_MINUTES = env.int('CACHE_MINUTES', default=0)
 CRAWL_MONTHS = env.int('CRAWL_MONTHS', default=6)
 EXTENDED_PROPERTY = env('EXTENDED_PROPERTY', default='tecId')
 

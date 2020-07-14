@@ -33,8 +33,7 @@ Python 3.
 * Save Google credentials file to `google_auth.json` (see Credentials section).
 * Install python requirements, e.g.:
   * `python3 -mvenv .venv && ./.venv/bin/pip install requirements`
-* Run `./.venv/bin/python tec-sync.py` in a cron job, no more often than the
-  `CACHE_MINUTES` setting. 
+* Run `./.venv/bin/python tec-sync.py` in a cron job. 
 
 ## Configuration ##
 
@@ -51,11 +50,11 @@ calendar's settings page, such as `98d7g87df6gdf87g58d7@group.calendar.google.co
 The other variables listed in .env.sample are optional, and used to change the default
 behavior of the script:
 
+* `CRAWL_MONTHS=6`: how many months of the source calendar to crawl.
 * `GOOGLE_CREDENTIALS_FILE=google_auth.json`: path to Google credentials file.
 * `CRAWL_DELAY_SECONDS=5`: time to sleep between requests to source Wordpress calendar.
-* `CACHE_MINUTES=1440`: how long to cache responses locally before hitting Wordpress site again.
-   Set to 0 to avoid creating a shelf.db. 
-* `CRAWL_MONTHS=6`: how many months of the source calendar to crawl.
+* `CACHE_MINUTES=0`: how long to cache responses locally in `shelf.db` before hitting Wordpress site again.
+   Useful mostly for development.
 * `EXTENDED_PROPERTY=tecId`: key used to store The Event Calendar's event IDs in the 
    Google events' extendedProperty field.
 
