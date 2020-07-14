@@ -14,7 +14,7 @@ It starts with the current month and by default grabs six months in all, based o
 setting.
 
 The script then grabs all events from the destination Google Calendar and syncs with the source events,
-looking at only events:
+looking at only events that are tagged as coming from the script:
 
 * New events are added.
 * Updated events are modified.
