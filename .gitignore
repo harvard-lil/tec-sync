@@ -1,3 +1,4 @@
 google_auth.json
 .env
 shelf.db
+.venv

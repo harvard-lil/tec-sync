@@ -1,6 +1,6 @@
 import shelve
 from copy import deepcopy
-from datetime import date, datetime
+from datetime import datetime
 from time import time, sleep
 
 from dateutil.parser import isoparse
@@ -17,19 +17,18 @@ import environ
 env = environ.Env()
 environ.Env.read_env()  # read from .env file if any
 SOURCE_URL = env('SOURCE_URL')
-CALENDAR_OWNER = env('CALENDAR_OWNER')
 CALENDAR_ID = env('CALENDAR_ID')
 GOOGLE_CREDENTIALS_FILE = env('GOOGLE_CREDENTIALS_FILE', default='google_auth.json')
 CRAWL_DELAY_SECONDS = env.int('CRAWL_DELAY_SECONDS', default=5)
 CACHE_MINUTES = env.int('CACHE_MINUTES', default=24*60)
 CRAWL_MONTHS = env.int('CRAWL_MONTHS', default=6)
+EXTENDED_PROPERTY = env('EXTENDED_PROPERTY', default='tecId')
 
 
 def get_gcal_service():
     credentials = service_account.Credentials.from_service_account_file(
         GOOGLE_CREDENTIALS_FILE,
-        scopes=['https://www.googleapis.com/auth/calendar'],
-        subject=CALENDAR_OWNER)
+        scopes=['https://www.googleapis.com/auth/calendar'])
     return build('calendar', 'v3', credentials=credentials)
 
 
@@ -43,17 +42,23 @@ def get_gcal_events(service):
             break
 
 
-def fetch_cached_get(url):
+def get(url):
+    print("Fetching %s from web" % url)
+    response = requests.get(url)
+    response.raise_for_status()
+    sleep(CRAWL_DELAY_SECONDS)
+    return {
+        'timestamp': time(),
+        'text': response.text,
+    }
+
+
+def cached_get(url):
+    if not CACHE_MINUTES:
+        return get(url)
     with shelve.open('shelf') as db:
         if url not in db or db[url]['timestamp'] < time() - 60*CACHE_MINUTES:
-            print("Fetching %s from web" % url)
-            response = requests.get(url)
-            response.raise_for_status()
-            sleep(CRAWL_DELAY_SECONDS)
-            db[url] = {
-                'timestamp': time(),
-                'text': response.text,
-            }
+            db[url] = get(url)
         else:
             print("Returning cached %s" % url)
         return db[url]['text']
@@ -64,10 +69,10 @@ service = get_gcal_service()
 gcal_events = []
 gcal_events_by_hls_id = {}
 for e in get_gcal_events(service):
-    gcal_events.append(e)
-    hlsId = e.get('extendedProperties', {}).get('private', {}).get('hlsId')
-    if hlsId:
-        gcal_events_by_hls_id[hlsId] = e
+    tecId = e.get('extendedProperties', {}).get('private', {}).get(EXTENDED_PROPERTY)
+    if tecId:
+        gcal_events.append(e)
+        gcal_events_by_hls_id[tecId] = e
 
 gcal_events_found = set()
 events_added = 0
@@ -85,7 +90,7 @@ for month_offset in range(CRAWL_MONTHS):
     month = month.strftime('%Y-%m')
     print("Syncing %s" % month)
     url = "%s%s/?ical=1&tribe_display=month" % (SOURCE_URL, month)
-    calendar = Calendar(fetch_cached_get(url))
+    calendar = Calendar(cached_get(url))
     for event in tqdm(calendar.events):
         if source_tz is None:
             source_tz = event.begin.tzinfo
@@ -118,7 +123,7 @@ for month_offset in range(CRAWL_MONTHS):
                 },
                 "extendedProperties": {
                     "private": {
-                        "hlsId": event.uid,
+                        EXTENDED_PROPERTY: event.uid,
                     }
                 }
             }
