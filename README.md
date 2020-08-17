@@ -31,9 +31,9 @@ Python 3.
 * `git clone` this repository.
 * Set configuration parameters (see Configuration section).
 * Save Google credentials file to `google_auth.json` (see Credentials section).
-* Install python requirements, e.g.:
-  * `python3 -mvenv .venv && ./.venv/bin/pip install requirements`
-* Run `./.venv/bin/python tec-sync.py` in a cron job. 
+* Create virtualenv, e.g.: `python3 -mvenv .venv`
+* Install python requirements, e.g.: `.venv/bin/pip install -r requirements.txt`
+* Run `.venv/bin/python tec-sync.py` in a cron job. 
 
 ## Configuration ##
 
