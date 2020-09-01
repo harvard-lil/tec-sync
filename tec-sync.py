@@ -101,9 +101,14 @@ for month_offset in range(CRAWL_MONTHS):
             new_event['summary'] = event.name
             if event.location:
                 new_event['location'] = event.location
-            new_event['description'] = event.description
-            new_event['start'] = {'dateTime': event.begin.isoformat()}
-            new_event['end'] = {'dateTime': event.end.isoformat()}
+            if event.description:
+                new_event['description'] = event.description
+            else:
+                new_event.pop('description', None)
+            if isoparse(old_event['start']['dateTime']) != event.begin:
+                new_event['start'] = {'dateTime': event.begin.isoformat()}
+            if isoparse(old_event['end']['dateTime']) != event.end:
+                new_event['end'] = {'dateTime': event.end.isoformat()}
             new_event['source']['url'] = event.url
             if old_event != new_event:
                 response = service.events().update(calendarId=CALENDAR_ID, eventId=new_event['id'], body=new_event).execute()
